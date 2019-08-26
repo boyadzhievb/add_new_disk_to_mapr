@@ -5,7 +5,7 @@ DISKS_OFFLINE_SP=$(grep ^#/dev /opt/mapr/conf/disktab | tr -d "#" | awk '{print 
 
 for hdd in $DISKS_OFFLINE_SP; do
         if [[ !  -r "$hdd" ]]; then
-                echo "Missing Disk"
+                echo "Missing disk:"
                 echo "$hdd"
                 MISSING_DISK=$hdd
         fi
@@ -21,13 +21,15 @@ DISKS_ON_SERVER=$(lsblk -b -d -o NAME,SIZE | grep sd | awk '{if ($2 > 2999664455
 for hdd in $DISKS_ON_SERVER ; do
          DISK_BY_ID=$(ls -l /dev/disk/by-id/ | grep $hdd$ | grep -v wwn| awk '{print $9}')
          if ! grep -q $DISK_BY_ID /opt/mapr/conf/disktab ; then
-                echo "NEW DISK"
+                echo "Newly found disk info:"
                 echo $DISK_BY_ID
                 lsblk -b -d -o NAME,SIZE /dev/disk/by-id/$DISK_BY_ID
                 echo ""
                 NEW_DISK_PATH=/dev/disk/by-id/$DISK_BY_ID
         fi
 done
+
+echo "Disks list"
 
 echo -n "$NEW_DISK_PATH "
 
@@ -39,5 +41,5 @@ for hdd in $DISKS_OFFLINE_SP; do
 done
 echo ""
 echo ""
-echo "maprcli disk add -host $(hostname -f) -disks"$NEW_DISK_PATH $DISK_LIST_OFFLINE "-stripeWidth 6"
+echo "maprcli disk add -host $(hostname -f) -disks "$NEW_DISK_PATH $DISK_LIST_OFFLINE "-stripeWidth 6"
 echo ""
